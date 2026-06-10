@@ -1,11 +1,22 @@
 import streamlit as st
 import tempfile
+
+import os
 import sys
 import os
 
-sys.path.append("../backend")
+backend_path = os.path.abspath(
+    os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "backend"
+    )
+)
+
+sys.path.append(backend_path)
 
 from main import screen_resume
+
 
 
 
