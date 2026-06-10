@@ -1,0 +1,21 @@
+Python
+Java
+C++
+FastAPI
+Flask
+Django
+Docker
+Kubernetes
+AWS
+Azure
+GCP
+PostgreSQL
+MySQL
+MongoDB
+TensorFlow
+PyTorch
+Machine Learning
+Deep Learning
+Git
+Linux
+Redis
