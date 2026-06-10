@@ -1,3 +1,5 @@
+import os
+
 from extractor import extract_text
 from embedder import embed
 from scorer import calculate_similarity
@@ -40,15 +42,20 @@ def extract_relevant_sections(text):
     return "\n".join(collected)
 
 
-def screen_resume(resume_path, jd_text):
+def screen_resume(
+    resume_path,
+    jd_text
+):
 
-    # Extract resume text
-    resume_text = extract_text(resume_path)
+    # Extract Resume Text
+    resume_text = extract_text(
+        resume_path
+    )
 
     print("\nResume Text Preview:")
     print(resume_text[:500])
 
-    # Extract important sections
+    # Extract Important Sections
     important_text = extract_relevant_sections(
         resume_text
     )
@@ -56,25 +63,36 @@ def screen_resume(resume_path, jd_text):
     print("\n=== IMPORTANT SECTIONS ===")
     print(important_text[:1000])
 
-    # Generate embeddings
-    jd_vector = embed(jd_text)
+    # Generate Embeddings
+    jd_vector = embed(
+        jd_text
+    )
 
     resume_vector = embed(
         important_text
     )
 
-    # Semantic similarity score
+    # Semantic Similarity
     semantic_score = calculate_similarity(
         jd_vector,
         resume_vector
     )
 
-    # Load skills database
-    skills = load_skills(
-        "../data/skills.txt"
+    # Load Skills Database (Cloud-Safe Path)
+    skills_path = os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "data",
+            "skills.txt"
+        )
     )
 
-    # Skill analysis
+    skills = load_skills(
+        skills_path
+    )
+
+    # Skill Analysis
     skill_result = compare_skills(
         jd_text,
         resume_text,
@@ -97,26 +115,18 @@ def screen_resume(resume_path, jd_text):
 
         skill_score = 0
 
-    # Final weighted score
+    # Final Weighted Score
     score = round(
         (semantic_score * 0.7)
         + (skill_score * 0.3),
         2
     )
 
-    print(
-        f"\nSemantic Score: {semantic_score:.2f}"
-    )
+    print(f"\nSemantic Score: {semantic_score:.2f}")
+    print(f"Skill Score: {skill_score:.2f}")
+    print(f"Final Score: {score:.2f}")
 
-    print(
-        f"Skill Score: {skill_score:.2f}"
-    )
-
-    print(
-        f"Final Score: {score:.2f}"
-    )
-
-    # Generate explanation
+    # AI Explanation
     explanation = generate_explanation(
         score,
         skill_result["matched"],
@@ -145,23 +155,9 @@ if __name__ == "__main__":
     )
 
     print("\n===== RESUME SCREENING RESULT =====")
-
-    print(
-        f"Match Score: {result['score']}%"
-    )
-
-    print(
-        f"Matched Skills: {result['matched']}"
-    )
-
-    print(
-        f"Missing Skills: {result['missing']}"
-    )
-
+    print(f"Match Score: {result['score']}%")
+    print(f"Matched Skills: {result['matched']}")
+    print(f"Missing Skills: {result['missing']}")
     print("\nExplanation:")
-
-    print(
-        result["explanation"]
-    )
-
+    print(result["explanation"])
     print("==================================")
