@@ -1,9 +1,7 @@
 import streamlit as st
 import tempfile
-
 import os
 import sys
-import os
 
 backend_path = os.path.abspath(
     os.path.join(
@@ -17,9 +15,6 @@ sys.path.append(backend_path)
 
 from main import screen_resume
 
-
-
-
 st.set_page_config(
     page_title="AI Resume Screener",
     page_icon="📄",
@@ -27,8 +22,13 @@ st.set_page_config(
 )
 
 st.title("📄 AI Resume Screener")
+
 st.markdown(
-    "Upload a resume and compare it against a job description using AI-powered semantic matching and skill analysis."
+    """
+    Upload multiple resumes and compare them
+    against a job description using AI-powered
+    semantic matching and skill analysis.
+    """
 )
 
 job_description = st.text_area(
@@ -37,67 +37,101 @@ job_description = st.text_area(
     placeholder="Paste the job description here..."
 )
 
-uploaded_file = st.file_uploader(
-    "Upload Resume PDF",
-    type=["pdf"]
+uploaded_files = st.file_uploader(
+    "Upload Resume PDFs",
+    type=["pdf"],
+    accept_multiple_files=True
 )
 
-if st.button("Analyze Resume"):
+if st.button("Analyze Resumes"):
 
-    if uploaded_file is None:
-        st.warning("Please upload a resume.")
+    if not uploaded_files:
+        st.warning("Please upload at least one resume.")
         st.stop()
 
     if not job_description.strip():
         st.warning("Please enter a job description.")
         st.stop()
 
-    with tempfile.NamedTemporaryFile(
-        delete=False,
-        suffix=".pdf"
-    ) as tmp_file:
+    results = []
 
-        tmp_file.write(
-            uploaded_file.getvalue()
-        )
+    with st.spinner("Analyzing resumes..."):
 
-        temp_path = tmp_file.name
+        for uploaded_file in uploaded_files:
 
-    with st.spinner("Analyzing Resume..."):
+            with tempfile.NamedTemporaryFile(
+                delete=False,
+                suffix=".pdf"
+            ) as tmp_file:
 
-        result = screen_resume(
-            temp_path,
-            job_description
-        )
+                tmp_file.write(
+                    uploaded_file.getvalue()
+                )
 
-    st.success("Analysis Complete")
+                temp_path = tmp_file.name
 
-    st.metric(
-        "Match Score",
-        f"{result['score']}%"
+            result = screen_resume(
+                temp_path,
+                job_description
+            )
+
+            results.append({
+                "name": uploaded_file.name,
+                "score": result["score"],
+                "matched": result["matched"],
+                "missing": result["missing"],
+                "explanation": result["explanation"]
+            })
+
+    results.sort(
+        key=lambda x: x["score"],
+        reverse=True
     )
 
-    col1, col2 = st.columns(2)
+    st.success("Ranking Complete")
 
-    with col1:
+    st.subheader("🏆 Resume Rankings")
 
-        st.subheader("✅ Matched Skills")
+    for rank, result in enumerate(
+        results,
+        start=1
+    ):
 
-        for skill in result["matched"]:
-            st.write(f"• {skill}")
+        st.markdown(
+            f"## #{rank} - {result['name']}"
+        )
 
-    with col2:
+        st.metric(
+            "Match Score",
+            f"{result['score']}%"
+        )
 
-        st.subheader("❌ Missing Skills")
+        col1, col2 = st.columns(2)
 
-        if result["missing"]:
-            for skill in result["missing"]:
-                st.write(f"• {skill}")
-        else:
-            st.write("No missing skills")
+        with col1:
 
-    st.subheader("🤖 AI Evaluation")
+            st.subheader("✅ Matched Skills")
 
-    st.write(
-        result["explanation"]
-    )
+            if result["matched"]:
+                for skill in result["matched"]:
+                    st.write(f"• {skill}")
+            else:
+                st.write("No matched skills")
+
+        with col2:
+
+            st.subheader("❌ Missing Skills")
+
+            if result["missing"]:
+                for skill in result["missing"]:
+                    st.write(f"• {skill}")
+            else:
+                st.write("No missing skills")
+
+        st.subheader("🤖 AI Evaluation")
+
+        st.write(
+            result["explanation"]
+        )
+
+        st.divider()
