@@ -1,10 +1,21 @@
 from sentence_transformers import SentenceTransformer
 
-model = SentenceTransformer(
-    "sentence-transformers/all-MiniLM-L6-v2"
-)
+model = None
+
+def get_model():
+    global model
+
+    if model is None:
+        model = SentenceTransformer(
+            "sentence-transformers/all-MiniLM-L6-v2"
+        )
+
+    return model
 
 def embed(text):
+
+    model = get_model()
+
     return model.encode(
         text,
         normalize_embeddings=True
@@ -12,12 +23,8 @@ def embed(text):
 
 if __name__ == "__main__":
 
-    jd = """
-    Looking for a Python Backend Developer
-    with FastAPI and Docker experience
-    """
+    vec = embed(
+        "Python FastAPI Docker AWS"
+    )
 
-    vec = embed(jd)
-
-    print("Vector Length:", len(vec))
-    print(vec[:10])
+    print(len(vec))
