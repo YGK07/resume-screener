@@ -1,5 +1,13 @@
 import streamlit as st
-import requests
+import tempfile
+import sys
+import os
+
+sys.path.append("../backend")
+
+from main import screen_resume
+
+
 
 st.set_page_config(
     page_title="AI Resume Screener",
@@ -33,89 +41,52 @@ if st.button("Analyze Resume"):
         st.warning("Please enter a job description.")
         st.stop()
 
-    files = {
-        "resume": (
-            uploaded_file.name,
-            uploaded_file.getvalue(),
-            "application/pdf"
-        )
-    }
+    with tempfile.NamedTemporaryFile(
+        delete=False,
+        suffix=".pdf"
+    ) as tmp_file:
 
-    data = {
-        "job_description": job_description
-    }
-
-    try:
-
-        with st.spinner("Analyzing Resume..."):
-
-            response = requests.post(
-                "http://127.0.0.1:8000/screen",
-                files=files,
-                data=data
-            )
-
-        if response.status_code != 200:
-            st.error(
-                f"Backend returned error {response.status_code}"
-            )
-            st.stop()
-
-        result = response.json()
-
-        st.success("Analysis Complete")
-
-        score = result["score"]
-
-        st.metric(
-            "Match Score",
-            f"{score}%"
+        tmp_file.write(
+            uploaded_file.getvalue()
         )
 
-        st.progress(
-            min(score / 100, 1.0)
+        temp_path = tmp_file.name
+
+    with st.spinner("Analyzing Resume..."):
+
+        result = screen_resume(
+            temp_path,
+            job_description
         )
 
-        st.divider()
+    st.success("Analysis Complete")
 
-        col1, col2 = st.columns(2)
+    st.metric(
+        "Match Score",
+        f"{result['score']}%"
+    )
 
-        with col1:
+    col1, col2 = st.columns(2)
 
-            st.subheader("✅ Matched Skills")
+    with col1:
 
-            if result["matched"]:
+        st.subheader("✅ Matched Skills")
 
-                for skill in result["matched"]:
-                    st.success(skill)
+        for skill in result["matched"]:
+            st.write(f"• {skill}")
 
-            else:
-                st.info("No matched skills found.")
+    with col2:
 
-        with col2:
+        st.subheader("❌ Missing Skills")
 
-            st.subheader("❌ Missing Skills")
+        if result["missing"]:
+            for skill in result["missing"]:
+                st.write(f"• {skill}")
+        else:
+            st.write("No missing skills")
 
-            if result["missing"]:
+    st.subheader("🤖 AI Evaluation")
 
-                for skill in result["missing"]:
-                    st.error(skill)
-
-            else:
-                st.success("No missing skills")
-
-        st.divider()
-
-        st.subheader("🤖 AI Evaluation")
-
-        st.write(
-            result["explanation"]
-        )
-
-    except Exception as e:
-
-        st.error(
-            "Unable to connect to FastAPI backend."
-        )
-
-        st.code(str(e))
+    st.write(
+        result["explanation"]
+    )
