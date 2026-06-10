@@ -1,7 +1,7 @@
 from sentence_transformers import SentenceTransformer
 
 model = SentenceTransformer(
-    "sentence-transformers/all-mpnet-base-v2"
+    "sentence-transformers/all-MiniLM-L6-v2"
 )
 
 def embed(text):
