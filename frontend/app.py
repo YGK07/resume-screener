@@ -3,6 +3,7 @@ import tempfile
 import os
 import sys
 import pandas as pd
+import plotly.express as px
 
 backend_path = os.path.abspath(
     os.path.join(
@@ -93,9 +94,88 @@ if st.button("Analyze Resumes"):
 
     st.success("Ranking Complete")
 
-    # =========================
-    # Ranking Table
-    # =========================
+    # ==================================
+    # RECRUITER DASHBOARD
+    # ==================================
+
+    st.subheader("📊 Recruiter Dashboard")
+
+    total_resumes = len(results)
+
+    average_score = round(
+        sum(r["score"] for r in results)
+        / total_resumes,
+        2
+    )
+
+    best_score = round(
+        results[0]["score"],
+        2
+    )
+
+    qualified_count = len(
+        [
+            r for r in results
+            if r["score"] >= 70
+        ]
+    )
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        st.metric(
+            "Total Resumes",
+            total_resumes
+        )
+
+    with col2:
+        st.metric(
+            "Average Score",
+            f"{average_score}%"
+        )
+
+    with col3:
+        st.metric(
+            "Top Score",
+            f"{best_score}%"
+        )
+
+    with col4:
+        st.metric(
+            "Qualified",
+            qualified_count
+        )
+
+    # ==================================
+    # PLOTLY BAR CHART
+    # ==================================
+
+    chart_df = pd.DataFrame({
+        "Resume": [
+            r["name"]
+            for r in results
+        ],
+        "Score": [
+            r["score"]
+            for r in results
+        ]
+    })
+
+    fig = px.bar(
+        chart_df,
+        x="Resume",
+        y="Score",
+        title="Resume Ranking Scores"
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
+
+    # ==================================
+    # RANKING TABLE
+    # ==================================
 
     table_data = []
 
@@ -123,14 +203,17 @@ if st.button("Analyze Resumes"):
         table_data
     )
 
-    st.subheader("📊 Resume Ranking Table")
+    st.subheader(
+        "📊 Resume Ranking Table"
+    )
 
     st.dataframe(
         ranking_df,
         use_container_width=True
     )
+
     csv = ranking_df.to_csv(
-    index=False
+        index=False
     ).encode("utf-8")
 
     st.download_button(
@@ -144,9 +227,9 @@ if st.button("Analyze Resumes"):
         "🏆 Detailed Resume Analysis"
     )
 
-    # =========================
-    # Detailed Results
-    # =========================
+    # ==================================
+    # DETAILED ANALYSIS
+    # ==================================
 
     for rank, result in enumerate(
         results,
@@ -161,6 +244,26 @@ if st.button("Analyze Resumes"):
             "Match Score",
             f"{result['score']:.2f}%"
         )
+
+        if result["score"] >= 80:
+            st.success(
+                "⭐ Strong Match"
+            )
+
+        elif result["score"] >= 60:
+            st.info(
+                "👍 Good Match"
+            )
+
+        elif result["score"] >= 40:
+            st.warning(
+                "⚠️ Needs Review"
+            )
+
+        else:
+            st.error(
+                "❌ Not Recommended"
+            )
 
         col1, col2 = st.columns(2)
 
