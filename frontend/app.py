@@ -129,6 +129,16 @@ if st.button("Analyze Resumes"):
         ranking_df,
         use_container_width=True
     )
+    csv = ranking_df.to_csv(
+    index=False
+    ).encode("utf-8")
+
+    st.download_button(
+        label="📥 Download Rankings as CSV",
+        data=csv,
+        file_name="resume_rankings.csv",
+        mime="text/csv"
+    )
 
     st.subheader(
         "🏆 Detailed Resume Analysis"
