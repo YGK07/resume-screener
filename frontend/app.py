@@ -2,6 +2,7 @@ import streamlit as st
 import tempfile
 import os
 import sys
+import pandas as pd
 
 backend_path = os.path.abspath(
     os.path.join(
@@ -83,6 +84,8 @@ if st.button("Analyze Resumes"):
                 "explanation": result["explanation"]
             })
 
+            os.unlink(temp_path)
+
     results.sort(
         key=lambda x: x["score"],
         reverse=True
@@ -90,7 +93,50 @@ if st.button("Analyze Resumes"):
 
     st.success("Ranking Complete")
 
-    st.subheader("🏆 Resume Rankings")
+    # =========================
+    # Ranking Table
+    # =========================
+
+    table_data = []
+
+    for rank, result in enumerate(
+        results,
+        start=1
+    ):
+
+        table_data.append({
+            "Rank": rank,
+            "Resume": result["name"],
+            "Score (%)": round(
+                result["score"],
+                2
+            ),
+            "Matched Skills": len(
+                result["matched"]
+            ),
+            "Missing Skills": len(
+                result["missing"]
+            )
+        })
+
+    ranking_df = pd.DataFrame(
+        table_data
+    )
+
+    st.subheader("📊 Resume Ranking Table")
+
+    st.dataframe(
+        ranking_df,
+        use_container_width=True
+    )
+
+    st.subheader(
+        "🏆 Detailed Resume Analysis"
+    )
+
+    # =========================
+    # Detailed Results
+    # =========================
 
     for rank, result in enumerate(
         results,
@@ -103,32 +149,52 @@ if st.button("Analyze Resumes"):
 
         st.metric(
             "Match Score",
-            f"{result['score']}%"
+            f"{result['score']:.2f}%"
         )
 
         col1, col2 = st.columns(2)
 
         with col1:
 
-            st.subheader("✅ Matched Skills")
+            st.subheader(
+                "✅ Matched Skills"
+            )
 
             if result["matched"]:
+
                 for skill in result["matched"]:
-                    st.write(f"• {skill}")
+                    st.write(
+                        f"• {skill}"
+                    )
+
             else:
-                st.write("No matched skills")
+
+                st.write(
+                    "No matched skills"
+                )
 
         with col2:
 
-            st.subheader("❌ Missing Skills")
+            st.subheader(
+                "❌ Missing Skills"
+            )
 
             if result["missing"]:
-                for skill in result["missing"]:
-                    st.write(f"• {skill}")
-            else:
-                st.write("No missing skills")
 
-        st.subheader("🤖 AI Evaluation")
+                for skill in result["missing"]:
+                    st.write(
+                        f"• {skill}"
+                    )
+
+            else:
+
+                st.write(
+                    "No missing skills"
+                )
+
+        st.subheader(
+            "🤖 AI Evaluation"
+        )
 
         st.write(
             result["explanation"]
