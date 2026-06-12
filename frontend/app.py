@@ -78,13 +78,13 @@ if st.button("Analyze Resumes"):
             )
 
             results.append({
-                "name": uploaded_file.name,
-                "score": result["score"],
-                "matched": result["matched"],
-                "missing": result["missing"],
-                "explanation": result["explanation"]
-            })
-
+    	    "name": uploaded_file.name,
+    	    "score": result["score"],
+    	    "matched": result["matched"],
+    	    "missing": result["missing"],
+    	    "explanation": result["explanation"],
+    	    "resume_text": result["resume_text"]
+	    })
             os.unlink(temp_path)
 
     results.sort(
@@ -305,29 +305,31 @@ if st.button("Analyze Resumes"):
                     "No missing skills"
                 )
 
-        st.subheader(
-            "🤖 AI Evaluation"
-        )
+        st.subheader("🤖 AI Evaluation")
+        st.write(result["explanation"])
 
-        st.write(
-            result["explanation"]
-        )
-	st.subheader("🔍 Resume Preview")
+        # ===========================
+        # Resume Preview
+        # ===========================
 
-	preview = result["resume_text"]
+        st.subheader("🔍 Resume Preview")
 
-	for skill in result["matched"]:
-   	 	preview = preview.replace(
-        	skill,
-        	f":green[{skill}]"
-    	)
+        preview = result["resume_text"]
 
-	for skill in result["missing"]:
-    		preview = preview.replace(
-       		skill,
-        	f":red[{skill}]"
-    	)
+        # Highlight matched skills
+        for skill in result["matched"]:
+            preview = preview.replace(
+                skill,
+                f":green[{skill}]"
+            )
 
-	st.markdown(preview)
+        # Highlight missing skills
+        for skill in result["missing"]:
+            preview = preview.replace(
+                skill,
+                f":red[{skill}]"
+            )
+
+        st.markdown(preview)
 
         st.divider()
