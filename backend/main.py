@@ -6,6 +6,7 @@ from embedder import embed
 from scorer import calculate_similarity
 from skill_matcher import load_skills, compare_skills
 from explainer import generate_explanation
+from interview_generator import generate_interview_questions
 
 
 def extract_relevant_sections(text):
@@ -152,6 +153,8 @@ def screen_resume(resume_path, jd_text):
     )
 
     explanation = generate_explanation(score, skill_result["matched"], skill_result["missing"])
+    
+    questions = generate_interview_questions(jd_text, resume_text)
 
     return {
         "score": score,
@@ -164,7 +167,8 @@ def screen_resume(resume_path, jd_text):
         "matched": skill_result["matched"],
         "missing": skill_result["missing"],
         "resume_text": resume_text,
-        "explanation": explanation
+        "explanation": explanation,
+        "questions": questions
     }
 
 

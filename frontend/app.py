@@ -86,7 +86,8 @@ if analyze:
                 "matched": result["matched"],
                 "missing": result["missing"],
                 "resume_text": result["resume_text"],
-                "explanation": result["explanation"]
+                "explanation": result["explanation"],
+                "questions": result["questions"]
             })
             os.unlink(temp_path)
 
@@ -451,6 +452,13 @@ if results:
 
             st.subheader("🤖 AI Evaluation")
             st.write(result["explanation"])
+
+            # ==================================
+            # AI INTERVIEW QUESTIONS
+            # ==================================
+
+            st.subheader("🎤 AI Interview Questions")
+            st.markdown(result["questions"])
 
             # ===========================
             # Resume Preview
