@@ -160,6 +160,101 @@ if st.button("Analyze Resumes"):
         mime="text/csv"
     )
 
+    # ==================================
+    # SIDE BY SIDE RESUME COMPARISON
+    # ==================================
+
+    st.subheader("⚔️ Compare Two Resumes")
+
+    resume_names = [
+        r["name"]
+        for r in results
+    ]
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        resume1 = st.selectbox(
+            "Resume 1",
+            resume_names,
+            key="resume1"
+        )
+
+    with col2:
+        resume2 = st.selectbox(
+            "Resume 2",
+            resume_names,
+            index=1 if len(resume_names) > 1 else 0,
+            key="resume2"
+        )
+
+    if st.button("Compare Selected Resumes"):
+        r1 = next(
+            r for r in results
+            if r["name"] == resume1
+        )
+
+        r2 = next(
+            r for r in results
+            if r["name"] == resume2
+        )
+
+        comparison = pd.DataFrame({
+            "Metric": [
+                "Overall Score",
+                "Semantic Score",
+                "Skill Score",
+                "Experience",
+                "Projects",
+                "Education Score",
+                "Certification Score",
+                "Matched Skills",
+                "Missing Skills"
+            ],
+            resume1: [
+                f"{r1['score']:.2f}%",
+                f"{r1['semantic_score']:.2f}%",
+                f"{r1['skill_score']:.2f}%",
+                f"{r1['experience']} Years",
+                r1["projects"],
+                f"{r1['education_score']}%",
+                f"{r1['certification_score']}%",
+                len(r1["matched"]),
+                len(r1["missing"])
+            ],
+            resume2: [
+                f"{r2['score']:.2f}%",
+                f"{r2['semantic_score']:.2f}%",
+                f"{r2['skill_score']:.2f}%",
+                f"{r2['experience']} Years",
+                r2["projects"],
+                f"{r2['education_score']}%",
+                f"{r2['certification_score']}%",
+                len(r2["matched"]),
+                len(r2["missing"])
+            ]
+        })
+
+        st.dataframe(
+            comparison,
+            use_container_width=True
+        )
+
+        st.subheader("🏅 Winner")
+
+        if r1["score"] > r2["score"]:
+            st.success(
+                f"🏆 {resume1} is the stronger candidate."
+            )
+        elif r2["score"] > r1["score"]:
+            st.success(
+                f"🏆 {resume2} is the stronger candidate."
+            )
+        else:
+            st.info(
+                "Both resumes have the same overall score."
+            )
+
     st.subheader("🏆 Detailed Resume Analysis")
 
     # ==================================
