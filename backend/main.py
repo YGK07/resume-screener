@@ -1,4 +1,5 @@
 import os
+import re
 
 from extractor import extract_text
 from embedder import embed
@@ -14,7 +15,8 @@ def extract_relevant_sections(text):
         "SKILLS",
         "PROJECTS",
         "EXPERIENCE",
-        "CERTIFICATIONS"
+        "CERTIFICATIONS",
+        "EDUCATION"
     ]
 
     lines = text.split("\n")
@@ -30,10 +32,7 @@ def extract_relevant_sections(text):
         if line.upper() in keywords:
             capture = True
 
-        elif (
-            line.isupper()
-            and line.upper() not in keywords
-        ):
+        elif line.isupper() and line.upper() not in keywords:
             capture = False
 
         if capture:
@@ -42,43 +41,109 @@ def extract_relevant_sections(text):
     return "\n".join(collected)
 
 
+def estimate_experience(text):
+
+    patterns = [
+        r"(\d+)\+?\s+years",
+        r"(\d+)\+?\s+yrs",
+        r"experience\s+of\s+(\d+)",
+        r"(\d+)\s+year"
+    ]
+
+    for pattern in patterns:
+
+        match = re.search(
+            pattern,
+            text.lower()
+        )
+
+        if match:
+            return int(match.group(1))
+
+    return 0
+
+
+def count_projects(text):
+
+    keywords = [
+        "project",
+        "projects"
+    ]
+
+    count = 0
+
+    for keyword in keywords:
+        count += text.lower().count(keyword)
+
+    return count
+
+
+def education_score(text):
+
+    text = text.lower()
+
+    if "phd" in text:
+        return 100
+
+    if "master" in text or "m.tech" in text:
+        return 90
+
+    if "bachelor" in text or "b.tech" in text:
+        return 80
+
+    if "diploma" in text:
+        return 60
+
+    return 40
+
+
+def certification_score(text):
+
+    keywords = [
+        "certified",
+        "certificate",
+        "certification",
+        "aws certified",
+        "google cloud",
+        "azure"
+    ]
+
+    score = 0
+
+    lower = text.lower()
+
+    for word in keywords:
+
+        if word in lower:
+            score += 20
+
+    return min(score, 100)
+
+
 def screen_resume(
     resume_path,
     jd_text
 ):
 
-    # Extract Resume Text
     resume_text = extract_text(
         resume_path
     )
 
-    print("\nResume Text Preview:")
-    print(resume_text[:500])
-
-    # Extract Important Sections
     important_text = extract_relevant_sections(
         resume_text
     )
 
-    print("\n=== IMPORTANT SECTIONS ===")
-    print(important_text[:1000])
-
-    # Generate Embeddings
-    jd_vector = embed(
-        jd_text
-    )
+    jd_vector = embed(jd_text)
 
     resume_vector = embed(
         important_text
     )
 
-    # Semantic Similarity
     semantic_score = calculate_similarity(
         jd_vector,
         resume_vector
     )
 
-    # Load Skills Database (Cloud-Safe Path)
     skills_path = os.path.abspath(
         os.path.join(
             os.path.dirname(__file__),
@@ -92,41 +157,76 @@ def screen_resume(
         skills_path
     )
 
-    # Skill Analysis
     skill_result = compare_skills(
         jd_text,
         resume_text,
         skills
     )
 
-    required_skills = (
+    required = (
         len(skill_result["matched"])
         + len(skill_result["missing"])
     )
 
-    if required_skills > 0:
-
-        skill_score = (
-            len(skill_result["matched"])
-            / required_skills
-        ) * 100
-
-    else:
-
+    if required == 0:
         skill_score = 0
 
-    # Final Weighted Score
+    else:
+        skill_score = (
+            len(skill_result["matched"])
+            / required
+        ) * 100
+
+    years = estimate_experience(
+        resume_text
+    )
+
+    if years >= 5:
+        experience_score = 100
+
+    elif years >= 3:
+        experience_score = 80
+
+    elif years >= 1:
+        experience_score = 60
+
+    else:
+        experience_score = 30
+
+    projects = count_projects(
+        resume_text
+    )
+
+    project_score = min(
+        projects * 15,
+        100
+    )
+
+    education = education_score(
+        resume_text
+    )
+
+    certification = certification_score(
+        resume_text
+    )
+
     score = round(
-        (semantic_score * 0.7)
-        + (skill_score * 0.3),
+
+        semantic_score * 0.40 +
+
+        skill_score * 0.30 +
+
+        experience_score * 0.10 +
+
+        project_score * 0.10 +
+
+        education * 0.05 +
+
+        certification * 0.05,
+
         2
     )
 
-    print(f"\nSemantic Score: {semantic_score:.2f}")
-    print(f"Skill Score: {skill_score:.2f}")
-    print(f"Final Score: {score:.2f}")
-
-    # AI Explanation
     explanation = generate_explanation(
         score,
         skill_result["matched"],
@@ -134,9 +234,31 @@ def screen_resume(
     )
 
     return {
+
         "score": score,
+
         "matched": skill_result["matched"],
+
         "missing": skill_result["missing"],
+
+        "experience": years,
+
+        "projects": projects,
+
+        "education_score": education,
+
+        "certification_score": certification,
+
+        "semantic_score": round(
+            semantic_score,
+            2
+        ),
+
+        "skill_score": round(
+            skill_score,
+            2
+        ),
+
         "explanation": explanation
     }
 
@@ -145,8 +267,8 @@ if __name__ == "__main__":
 
     jd = """
     Looking for a Python Backend Developer
-    with FastAPI, Docker, AWS and
-    PostgreSQL experience.
+    with FastAPI, Docker,
+    AWS and PostgreSQL experience.
     """
 
     result = screen_resume(
@@ -154,10 +276,4 @@ if __name__ == "__main__":
         jd
     )
 
-    print("\n===== RESUME SCREENING RESULT =====")
-    print(f"Match Score: {result['score']}%")
-    print(f"Matched Skills: {result['matched']}")
-    print(f"Missing Skills: {result['missing']}")
-    print("\nExplanation:")
-    print(result["explanation"])
-    print("==================================")
+    print(result)
