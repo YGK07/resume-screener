@@ -190,6 +190,36 @@ if st.button("Analyze Resumes"):
             else:
                 st.write("No missing skills")
 
+        # ==================================
+        # SKILL DISTRIBUTION PIE CHART
+        # ==================================
+
+        st.subheader("🥧 Skill Distribution")
+
+        pie_df = pd.DataFrame({
+            "Category": [
+                "Matched Skills",
+                "Missing Skills"
+            ],
+            "Count": [
+                len(result["matched"]),
+                len(result["missing"])
+            ]
+        })
+
+        pie_fig = px.pie(
+            pie_df,
+            names="Category",
+            values="Count",
+            hole=0.45,
+            title=f"{result['name']} Skill Match"
+        )
+
+        st.plotly_chart(
+            pie_fig,
+            use_container_width=True
+        )
+
         st.subheader("🤖 AI Evaluation")
         st.write(result["explanation"])
 
