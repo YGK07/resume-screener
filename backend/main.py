@@ -155,16 +155,16 @@ def screen_resume(resume_path, jd_text):
 
     return {
         "score": score,
-        "matched": skill_result["matched"],
-        "missing": skill_result["missing"],
+        "semantic_score": round(semantic_score, 2),
+        "skill_score": round(skill_score, 2),
         "experience": years,
         "projects": projects,
         "education_score": education,
         "certification_score": certification,
-        "semantic_score": round(semantic_score, 2),
-        "skill_score": round(skill_score, 2),
-        "explanation": explanation,
-        "resume_text": resume_text
+        "matched": skill_result["matched"],
+        "missing": skill_result["missing"],
+        "resume_text": resume_text,
+        "explanation": explanation
     }
 
 

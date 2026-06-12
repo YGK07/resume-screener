@@ -70,10 +70,16 @@ if st.button("Analyze Resumes"):
             results.append({
                 "name": uploaded_file.name,
                 "score": result["score"],
+                "semantic_score": result["semantic_score"],
+                "skill_score": result["skill_score"],
+                "experience": result["experience"],
+                "projects": result["projects"],
+                "education_score": result["education_score"],
+                "certification_score": result["certification_score"],
                 "matched": result["matched"],
                 "missing": result["missing"],
-                "explanation": result["explanation"],
-                "resume_text": result["resume_text"]
+                "resume_text": result["resume_text"],
+                "explanation": result["explanation"]
             })
             os.unlink(temp_path)
 
@@ -162,6 +168,36 @@ if st.button("Analyze Resumes"):
     for rank, result in enumerate(results, start=1):
         st.markdown(f"## #{rank} - {result['name']}")
         st.metric("Match Score", f"{result['score']:.2f}%")
+
+        # ==================================
+        # ATS BREAKDOWN
+        # ==================================
+
+        st.subheader("📈 ATS Score Breakdown")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.progress(min(result["semantic_score"] / 100, 1.0))
+            st.write(f"Semantic Match: {result['semantic_score']:.2f}%")
+
+            st.progress(min(result["skill_score"] / 100, 1.0))
+            st.write(f"Skill Match: {result['skill_score']:.2f}%")
+
+            exp_score = min(result["experience"] * 20, 100)
+            st.progress(exp_score / 100)
+            st.write(f"Experience: {result['experience']} Years")
+
+        with col2:
+            project_score = min(result["projects"] * 10, 100)
+            st.progress(project_score / 100)
+            st.write(f"Projects: {result['projects']}")
+
+            st.progress(result["education_score"] / 100)
+            st.write(f"Education Score: {result['education_score']}%")
+
+            st.progress(result["certification_score"] / 100)
+            st.write(f"Certification Score: {result['certification_score']}%")
 
         if result["score"] >= 80:
             st.success("⭐ Strong Match")
