@@ -312,5 +312,22 @@ if st.button("Analyze Resumes"):
         st.write(
             result["explanation"]
         )
+	st.subheader("🔍 Resume Preview")
+
+	preview = result["resume_text"]
+
+	for skill in result["matched"]:
+   	 	preview = preview.replace(
+        	skill,
+        	f":green[{skill}]"
+    	)
+
+	for skill in result["missing"]:
+    		preview = preview.replace(
+       		skill,
+        	f":red[{skill}]"
+    	)
+
+	st.markdown(preview)
 
         st.divider()

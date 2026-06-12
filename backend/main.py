@@ -232,38 +232,39 @@ def screen_resume(
         skill_result["matched"],
         skill_result["missing"]
     )
-
     return {
 
-        "score": score,
+    "score": score,
 
-        "matched": skill_result["matched"],
+    "matched": skill_result["matched"],
 
-        "missing": skill_result["missing"],
+    "missing": skill_result["missing"],
 
-        "experience": years,
+    "experience": years,
 
-        "projects": projects,
+    "projects": projects,
 
-        "education_score": education,
+    "education_score": education,
 
-        "certification_score": certification,
+    "certification_score": certification,
 
-        "semantic_score": round(
-            semantic_score,
-            2
-        ),
+    "semantic_score": round(
+        semantic_score,
+        2
+    ),
 
-        "skill_score": round(
-            skill_score,
-            2
-        ),
+    "skill_score": round(
+        skill_score,
+        2
+    ),
 
-        "explanation": explanation
+    "explanation": explanation,
+
+    "resume_text": resume_text
+
     }
 
-
-if __name__ == "__main__":
+    if __name__ == "__main__":
 
     jd = """
     Looking for a Python Backend Developer
