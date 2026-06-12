@@ -178,25 +178,37 @@ if st.button("Analyze Resumes"):
         col1, col2 = st.columns(2)
 
         with col1:
-            st.progress(min(result["semantic_score"] / 100, 1.0))
+            # Semantic Match
+            semantic_value = max(0, min(100, int(result["semantic_score"])))
+            st.progress(semantic_value)
             st.write(f"Semantic Match: {result['semantic_score']:.2f}%")
 
-            st.progress(min(result["skill_score"] / 100, 1.0))
+            # Skill Match
+            skill_value = max(0, min(100, int(result["skill_score"])))
+            st.progress(skill_value)
             st.write(f"Skill Match: {result['skill_score']:.2f}%")
 
+            # Experience
             exp_score = min(result["experience"] * 20, 100)
-            st.progress(exp_score / 100)
+            exp_value = max(0, min(100, int(exp_score)))
+            st.progress(exp_value)
             st.write(f"Experience: {result['experience']} Years")
 
         with col2:
+            # Projects
             project_score = min(result["projects"] * 10, 100)
-            st.progress(project_score / 100)
+            project_value = max(0, min(100, int(project_score)))
+            st.progress(project_value)
             st.write(f"Projects: {result['projects']}")
 
-            st.progress(result["education_score"] / 100)
+            # Education
+            edu_value = max(0, min(100, int(result["education_score"])))
+            st.progress(edu_value)
             st.write(f"Education Score: {result['education_score']}%")
 
-            st.progress(result["certification_score"] / 100)
+            # Certification
+            cert_value = max(0, min(100, int(result["certification_score"])))
+            st.progress(cert_value)
             st.write(f"Certification Score: {result['certification_score']}%")
 
         if result["score"] >= 80:
