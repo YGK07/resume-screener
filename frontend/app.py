@@ -45,7 +45,13 @@ uploaded_files = st.file_uploader(
     accept_multiple_files=True
 )
 
-if st.button("Analyze Resumes"):
+# ==================================
+# ANALYSIS BUTTON AND SESSION STATE
+# ==================================
+
+analyze = st.button("Analyze Resumes")
+
+if analyze:
     if not uploaded_files:
         st.warning("Please upload at least one resume.")
         st.stop()
@@ -85,7 +91,26 @@ if st.button("Analyze Resumes"):
             os.unlink(temp_path)
 
     results.sort(key=lambda x: x["score"], reverse=True)
+    
+    # Save results to session state
+    st.session_state["results"] = results
+    st.session_state["job_description"] = job_description
 
+# ==================================
+# RESTORE RESULTS FROM SESSION STATE
+# ==================================
+
+if "results" in st.session_state:
+    results = st.session_state["results"]
+    job_description = st.session_state.get("job_description", "")
+else:
+    results = []
+
+# ==================================
+# DISPLAY RESULTS IF AVAILABLE
+# ==================================
+
+if results:
     st.success("Ranking Complete")
 
     # ==================================
@@ -384,3 +409,8 @@ if st.button("Analyze Resumes"):
 
         st.markdown(preview)
         st.divider()
+else:
+    if analyze:
+        st.error("No results to display. Please check your inputs and try again.")
+    else:
+        st.info("👈 Click 'Analyze Resumes' to start screening")
