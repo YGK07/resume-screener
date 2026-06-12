@@ -73,21 +73,21 @@ if analyze:
 
             result = screen_resume(temp_path, job_description)
 
-            # Store all information from the result
+            # Store all information from the result with error handling for questions
             results.append({
                 "name": uploaded_file.name,
-                "score": result["score"],
-                "semantic_score": result["semantic_score"],
-                "skill_score": result["skill_score"],
-                "experience": result["experience"],
-                "projects": result["projects"],
-                "education_score": result["education_score"],
-                "certification_score": result["certification_score"],
-                "matched": result["matched"],
-                "missing": result["missing"],
-                "resume_text": result["resume_text"],
-                "explanation": result["explanation"],
-                "questions": result["questions"]
+                "score": result.get("score", 0),
+                "semantic_score": result.get("semantic_score", 0),
+                "skill_score": result.get("skill_score", 0),
+                "experience": result.get("experience", 0),
+                "projects": result.get("projects", 0),
+                "education_score": result.get("education_score", 0),
+                "certification_score": result.get("certification_score", 0),
+                "matched": result.get("matched", []),
+                "missing": result.get("missing", []),
+                "resume_text": result.get("resume_text", ""),
+                "explanation": result.get("explanation", "No explanation available."),
+                "questions": result.get("questions", "## Interview Questions\n\nNo interview questions could be generated for this resume.")
             })
             os.unlink(temp_path)
 
@@ -458,7 +458,12 @@ if results:
             # ==================================
 
             st.subheader("🎤 AI Interview Questions")
-            st.markdown(result["questions"])
+            
+            # Check if questions exist and display them
+            if result.get("questions"):
+                st.markdown(result["questions"])
+            else:
+                st.info("No interview questions generated for this resume.")
 
             # ===========================
             # Resume Preview
