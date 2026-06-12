@@ -67,6 +67,7 @@ if st.button("Analyze Resumes"):
 
             result = screen_resume(temp_path, job_description)
 
+            # Store all information from the result
             results.append({
                 "name": uploaded_file.name,
                 "score": result["score"],
