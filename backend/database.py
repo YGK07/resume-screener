@@ -19,6 +19,7 @@ def initialize_database():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
 
         candidate TEXT,
+	candidate_name TEXT,
 
         score REAL,
 
@@ -58,7 +59,7 @@ def save_result(result):
     INSERT INTO resume_results(
 
         candidate,
-
+	candidate_name,
         score,
 
         semantic_score,
@@ -86,7 +87,7 @@ def save_result(result):
     (
 
         result["name"],
-
+	result["candidate_name"],
         result["score"],
 
         result["semantic_score"],

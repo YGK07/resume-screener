@@ -7,7 +7,7 @@ from scorer import calculate_similarity
 from skill_matcher import load_skills, compare_skills
 from explainer import generate_explanation
 from interview_generator import generate_interview_questions
-
+from name_extractor import extract_candidate_name
 
 def extract_relevant_sections(text):
     keywords = [
@@ -99,6 +99,9 @@ def certification_score(text):
 
 def screen_resume(resume_path, jd_text):
     resume_text = extract_text(resume_path)
+    candidate_name = extract_candidate_name(
+    resume_text
+    )
     important_text = extract_relevant_sections(resume_text)
 
     jd_vector = embed(jd_text)
@@ -163,6 +166,7 @@ def screen_resume(resume_path, jd_text):
     )
 
     return {
+	"candidate_name": candidate_name,
         "score": score,
         "semantic_score": round(semantic_score, 2),
         "skill_score": round(skill_score, 2),

@@ -104,6 +104,7 @@ if analyze:
             # Store all information from the result with error handling for questions
             results.append({
                 "name": uploaded_file.name,
+		"candidate_name": result["candidate_name"],
                 "score": result.get("score", 0),
                 "semantic_score": result.get("semantic_score", 0),
                 "skill_score": result.get("skill_score", 0),
@@ -385,7 +386,13 @@ if results:
         # ==================================
 
         for rank, result in enumerate(current_results, start=1):
-            st.markdown(f"## #{rank} - {result['name']}")
+            st.markdown(
+    	        f"## #{rank} - {result['candidate_name']}"
+	    )
+
+	    st.caption(
+                f"📄 File: {result['name']}"
+	    )
             st.metric("Match Score", f"{result['score']:.2f}%")
 
             # ==================================
