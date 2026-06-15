@@ -118,11 +118,11 @@ if analyze:
                 "resume_text": result.get("resume_text", ""),
                 "explanation": result.get("explanation", "No explanation available."),
                 "questions": result.get("questions", "## Interview Questions\n\nNo interview questions could be generated for this resume."),
-                "improvements": result.get("improvements", "No improvement suggestions available.")
+                "improvements": result.get("improvements", "No improvement suggestions available."),
 		"email": result.get("email", "Not Found"),
 		"phone": result.get("phone", "Not Found"),
 		"linkedin": result.get("linkedin", "Not Found"),
-		"github": result.get("github", "Not Found"),
+		"github": result.get("github", "Not Found")
             })
             save_result(results[-1])
             os.unlink(temp_path)
