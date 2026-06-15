@@ -28,8 +28,14 @@ from main import screen_resume
 from database import (
     initialize_database,
     save_result,
-    load_history
+    load_history,
+    DB_PATH  # Import DB_PATH for debugging
 )
+
+# ==================================
+# DEBUGGING: Print database path
+# ==================================
+print(f"Database path: {DB_PATH}")
 
 # ==================================
 # INITIALIZE DATABASE
@@ -121,6 +127,12 @@ if analyze:
             os.unlink(temp_path)
 
     results.sort(key=lambda x: x["score"], reverse=True)
+    
+    # DEBUGGING: Check if save worked
+    st.write("=== DEBUG: Database contents after save ===")
+    debug_history = load_history()
+    st.write(debug_history)
+    st.write("=== End DEBUG ===")
     
     # Save results to session state
     st.session_state["results"] = results
@@ -559,9 +571,10 @@ minimum_experience = st.slider(
 
 st.subheader("📚 Analysis History")
 
-# Load history with filters (if search_candidate is empty, it will return all)
+# FIXED: Pass search_candidate directly without converting empty string to None
+# This prevents SQL LIKE '%None%' issue
 history = load_history(
-    search_candidate if search_candidate.strip() else None,
+    search_candidate,  # Pass directly - empty string is fine
     minimum_score,
     minimum_experience
 )
