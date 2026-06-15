@@ -1,3 +1,6 @@
+from database import initialize_database
+from database import save_result
+from database import load_history
 import streamlit as st
 import tempfile
 import os
@@ -16,6 +19,7 @@ backend_path = os.path.abspath(
 sys.path.append(backend_path)
 
 from main import screen_resume
+initialize_database()
 
 st.set_page_config(
     page_title="AI Resume Screener",
@@ -89,6 +93,7 @@ if analyze:
                 "explanation": result.get("explanation", "No explanation available."),
                 "questions": result.get("questions", "## Interview Questions\n\nNo interview questions could be generated for this resume.")
             })
+	    save_result(results[-1])
             os.unlink(temp_path)
 
     results.sort(key=lambda x: x["score"], reverse=True)
@@ -489,3 +494,54 @@ else:
         st.error("No results to display. Please check your inputs and try again.")
     else:
         st.info("👈 Click 'Analyze Resumes' to start screening")
+st.subheader("📚 Analysis History")
+
+history = load_history()
+
+if history:
+
+    history_df = pd.DataFrame(
+
+        history,
+
+        columns=[
+
+            "ID",
+
+            "Candidate",
+
+            "Score",
+
+            "Semantic",
+
+            "Skill",
+
+            "Experience",
+
+            "Projects",
+
+            "Education",
+
+            "Certification",
+
+            "Matched",
+
+            "Missing",
+
+            "Date"
+
+        ]
+
+    )
+
+    st.dataframe(
+
+        history_df,
+
+        use_container_width=True
+
+    )
+
+else:
+
+    st.info("No history available.")
