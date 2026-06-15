@@ -1,12 +1,13 @@
-from database import initialize_database
-from database import save_result
-from database import load_history
 import streamlit as st
 import tempfile
 import os
 import sys
 import pandas as pd
 import plotly.express as px
+
+# ==================================
+# ADD BACKEND FOLDER TO PYTHON PATH
+# ==================================
 
 backend_path = os.path.abspath(
     os.path.join(
@@ -18,8 +19,27 @@ backend_path = os.path.abspath(
 
 sys.path.append(backend_path)
 
+# ==================================
+# IMPORT BACKEND MODULES
+# ==================================
+
 from main import screen_resume
+
+from database import (
+    initialize_database,
+    save_result,
+    load_history
+)
+
+# ==================================
+# INITIALIZE DATABASE
+# ==================================
+
 initialize_database()
+
+# ==================================
+# STREAMLIT PAGE
+# ==================================
 
 st.set_page_config(
     page_title="AI Resume Screener",
@@ -54,7 +74,6 @@ uploaded_files = st.file_uploader(
 # ==================================
 
 analyze = st.button("Analyze Resumes")
-
 if analyze:
     if not uploaded_files:
         st.warning("Please upload at least one resume.")
