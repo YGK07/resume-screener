@@ -583,17 +583,18 @@ if history:
         history,
         columns=[
             "ID",
-            "Candidate",
+            "PDF File",
+            "Candidate Name",
             "Score",
-            "Semantic",
-            "Skill",
+            "Semantic Score",
+            "Skill Score",
             "Experience",
             "Projects",
-            "Education",
-            "Certification",
-            "Matched",
-            "Missing",
-            "Date"
+            "Education Score",
+            "Certification Score",
+            "Matched Skills",
+            "Missing Skills",
+            "Analyzed On"
         ]
     )
     st.dataframe(
