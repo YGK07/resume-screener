@@ -10,7 +10,6 @@ DB_PATH = os.path.join(
 def initialize_database():
 
     conn = sqlite3.connect(DB_PATH)
-
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -19,7 +18,8 @@ def initialize_database():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
 
         candidate TEXT,
-	candidate_name TEXT,
+
+        candidate_name TEXT,
 
         score REAL,
 
@@ -51,7 +51,6 @@ def initialize_database():
 def save_result(result):
 
     conn = sqlite3.connect(DB_PATH)
-
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -59,7 +58,9 @@ def save_result(result):
     INSERT INTO resume_results(
 
         candidate,
-	candidate_name,
+
+        candidate_name,
+
         score,
 
         semantic_score,
@@ -80,27 +81,29 @@ def save_result(result):
 
     )
 
-    VALUES(?,?,?,?,?,?,?,?,?,?)
+    VALUES(?,?,?,?,?,?,?,?,?,?,?)
 
     """,
 
     (
 
         result["name"],
-	result["candidate_name"],
-        result["score"],
 
-        result["semantic_score"],
+        result["candidate_name"],
 
-        result["skill_score"],
+        float(result["score"]),
 
-        result["experience"],
+        float(result["semantic_score"]),
 
-        result["projects"],
+        float(result["skill_score"]),
 
-        result["education_score"],
+        int(result["experience"]),
 
-        result["certification_score"],
+        int(result["projects"]),
+
+        int(result["education_score"]),
+
+        int(result["certification_score"]),
 
         ",".join(result["matched"]),
 
@@ -111,18 +114,20 @@ def save_result(result):
     )
 
     conn.commit()
-
     conn.close()
 
 
 def load_history(
+
     search="",
+
     min_score=0,
+
     min_experience=0
+
 ):
 
     conn = sqlite3.connect(DB_PATH)
-
     cursor = conn.cursor()
 
     cursor.execute(
@@ -130,7 +135,7 @@ def load_history(
         SELECT *
         FROM resume_results
 
-        WHERE candidate LIKE ?
+        WHERE candidate_name LIKE ?
         AND score >= ?
         AND experience >= ?
 
@@ -139,9 +144,10 @@ def load_history(
 
         (
             f"%{search}%",
-            min_score,
-            min_experience
+            float(min_score),
+            int(min_experience)
         )
+
     )
 
     rows = cursor.fetchall()
