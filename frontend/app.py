@@ -24,6 +24,7 @@ sys.path.append(backend_path)
 # ==================================
 
 from main import screen_resume
+from report_generator import generate_pdf
 
 from database import (
     initialize_database,
@@ -525,6 +526,37 @@ if results:
                 preview = preview.replace(skill, f":red[{skill}]")
 
             st.markdown(preview)
+
+            # ==================================
+            # PDF REPORT - ADDED HERE
+            # ==================================
+            
+            st.subheader("📄 Download Report")
+            
+            # Generate PDF report for this candidate
+            pdf_name = f"{result['candidate_name']}_report.pdf"
+            
+            try:
+                generate_pdf(result, pdf_name)
+                
+                with open(pdf_name, "rb") as pdf_file:
+                    st.download_button(
+                        label="📄 Download PDF Report",
+                        data=pdf_file,
+                        file_name=pdf_name,
+                        mime="application/pdf",
+                        key=f"pdf_{rank}_{result['candidate_name']}"
+                    )
+                
+                # Clean up the PDF file after download button is created
+                # Note: The file will be cleaned up on next rerun or you can use os.remove
+                # But since Streamlit reruns frequently, we'll schedule cleanup
+                if os.path.exists(pdf_name):
+                    os.remove(pdf_name)
+                    
+            except Exception as e:
+                st.error(f"Could not generate PDF report: {str(e)}")
+            
             st.divider()
     else:
         st.warning("No resumes match the current filter criteria. Please adjust your filters.")
