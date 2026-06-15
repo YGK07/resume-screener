@@ -1,6 +1,6 @@
 import os
 import re
-
+from resume_improver import improve_resume
 from extractor import extract_text
 from embedder import embed
 from scorer import calculate_similarity
@@ -155,6 +155,12 @@ def screen_resume(resume_path, jd_text):
     explanation = generate_explanation(score, skill_result["matched"], skill_result["missing"])
     
     questions = generate_interview_questions(jd_text, resume_text)
+    improvements = improve_resume(
+    jd_text,
+    resume_text,
+    skill_result["matched"],
+    skill_result["missing"]
+    )
 
     return {
         "score": score,
@@ -168,7 +174,8 @@ def screen_resume(resume_path, jd_text):
         "missing": skill_result["missing"],
         "resume_text": resume_text,
         "explanation": explanation,
-        "questions": questions
+        "questions": questions,
+        "improvements": improvements
     }
 
 

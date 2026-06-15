@@ -115,7 +115,8 @@ if analyze:
                 "missing": result.get("missing", []),
                 "resume_text": result.get("resume_text", ""),
                 "explanation": result.get("explanation", "No explanation available."),
-                "questions": result.get("questions", "## Interview Questions\n\nNo interview questions could be generated for this resume.")
+                "questions": result.get("questions", "## Interview Questions\n\nNo interview questions could be generated for this resume."),
+	        "improvements": result["improvements"]
             })
             save_result(results[-1])
             os.unlink(temp_path)
@@ -488,6 +489,11 @@ if results:
 
             st.subheader("🤖 AI Evaluation")
             st.write(result["explanation"])
+	    st.subheader("💡 AI Resume Improvement Suggestions")
+
+	    st.info(
+    	        result["improvements"]
+            )
 
             # ==================================
             # AI INTERVIEW QUESTIONS
