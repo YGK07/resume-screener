@@ -513,10 +513,35 @@ else:
         st.error("No results to display. Please check your inputs and try again.")
     else:
         st.info("👈 Click 'Analyze Resumes' to start screening")
+st.subheader("🔍 Search Candidate Database")
 
+search_candidate = st.text_input(
+    "Candidate Name"
+)
+
+minimum_score = st.slider(
+    "Minimum Score",
+    0,
+    100,
+    0
+)
+
+minimum_experience = st.slider(
+    "Minimum Experience",
+    0,
+    20,
+    0
+)
 st.subheader("📚 Analysis History")
 
-history = load_history()
+history = load_history(
+    search_candidate,
+    minimum_score,
+    minimum_experience
+)
+st.success(
+    f"{len(history)} candidate(s) found."
+)
 
 if history:
     history_df = pd.DataFrame(

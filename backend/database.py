@@ -114,21 +114,34 @@ def save_result(result):
     conn.close()
 
 
-def load_history():
+def load_history(
+    search="",
+    min_score=0,
+    min_experience=0
+):
 
     conn = sqlite3.connect(DB_PATH)
 
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
+        SELECT *
+        FROM resume_results
 
-    SELECT *
+        WHERE candidate LIKE ?
+        AND score >= ?
+        AND experience >= ?
 
-    FROM resume_results
+        ORDER BY analyzed_on DESC
+        """,
 
-    ORDER BY analyzed_on DESC
-
-    """)
+        (
+            f"%{search}%",
+            min_score,
+            min_experience
+        )
+    )
 
     rows = cursor.fetchall()
 
