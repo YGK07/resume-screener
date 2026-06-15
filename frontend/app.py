@@ -74,6 +74,11 @@ uploaded_files = st.file_uploader(
 # ==================================
 
 analyze = st.button("Analyze Resumes")
+
+# Initialize session state for tracking if analysis was just performed
+if "analysis_performed" not in st.session_state:
+    st.session_state["analysis_performed"] = False
+
 if analyze:
     if not uploaded_files:
         st.warning("Please upload at least one resume.")
@@ -120,6 +125,7 @@ if analyze:
     # Save results to session state
     st.session_state["results"] = results
     st.session_state["job_description"] = job_description
+    st.session_state["analysis_performed"] = True
 
 # ==================================
 # RESTORE RESULTS FROM SESSION STATE
@@ -154,14 +160,16 @@ if results:
         "Minimum Match Score",
         0,
         100,
-        0
+        0,
+        key="recruiter_min_score"
     )
     
     min_experience = st.slider(
         "Minimum Experience (Years)",
         0,
         20,
-        0
+        0,
+        key="recruiter_min_experience"
     )
     
     must_have_skill = st.selectbox(
@@ -177,7 +185,8 @@ if results:
             "Redis",
             "Kubernetes",
             "Linux"
-        ]
+        ],
+        key="recruiter_must_have_skill"
     )
     
     # Apply filters
@@ -195,19 +204,19 @@ if results:
             continue
         filtered_results.append(r)
     
-    results = filtered_results
+    current_results = filtered_results
     
     st.info(
-        f"Showing {len(results)} matching resumes."
+        f"Showing {len(current_results)} matching resumes."
     )
 
-    total_resumes = len(results)
+    total_resumes = len(current_results)
     
     # Only show metrics if there are results after filtering
     if total_resumes > 0:
-        average_score = round(sum(r["score"] for r in results) / total_resumes, 2)
-        best_score = round(results[0]["score"], 2)
-        qualified_count = len([r for r in results if r["score"] >= 70])
+        average_score = round(sum(r["score"] for r in current_results) / total_resumes, 2)
+        best_score = round(current_results[0]["score"], 2)
+        qualified_count = len([r for r in current_results if r["score"] >= 70])
 
         col1, col2, col3, col4 = st.columns(4)
 
@@ -228,8 +237,8 @@ if results:
         # ==================================
 
         chart_df = pd.DataFrame({
-            "Resume": [r["name"] for r in results],
-            "Score": [r["score"] for r in results]
+            "Resume": [r["name"] for r in current_results],
+            "Score": [r["score"] for r in current_results]
         })
 
         fig = px.bar(
@@ -247,7 +256,7 @@ if results:
 
         table_data = []
 
-        for rank, result in enumerate(results, start=1):
+        for rank, result in enumerate(current_results, start=1):
             table_data.append({
                 "Rank": rank,
                 "Resume": result["name"],
@@ -278,92 +287,95 @@ if results:
 
         resume_names = [
             r["name"]
-            for r in results
+            for r in current_results
         ]
 
-        col1, col2 = st.columns(2)
+        if len(resume_names) >= 2:
+            col1, col2 = st.columns(2)
 
-        with col1:
-            resume1 = st.selectbox(
-                "Resume 1",
-                resume_names,
-                key="resume1"
-            )
-
-        with col2:
-            resume2 = st.selectbox(
-                "Resume 2",
-                resume_names,
-                index=1 if len(resume_names) > 1 else 0,
-                key="resume2"
-            )
-
-        if st.button("Compare Selected Resumes"):
-            r1 = next(
-                r for r in results
-                if r["name"] == resume1
-            )
-
-            r2 = next(
-                r for r in results
-                if r["name"] == resume2
-            )
-
-            comparison = pd.DataFrame({
-                "Metric": [
-                    "Overall Score",
-                    "Semantic Score",
-                    "Skill Score",
-                    "Experience",
-                    "Projects",
-                    "Education Score",
-                    "Certification Score",
-                    "Matched Skills",
-                    "Missing Skills"
-                ],
-                resume1: [
-                    f"{r1['score']:.2f}%",
-                    f"{r1['semantic_score']:.2f}%",
-                    f"{r1['skill_score']:.2f}%",
-                    f"{r1['experience']} Years",
-                    r1["projects"],
-                    f"{r1['education_score']}%",
-                    f"{r1['certification_score']}%",
-                    len(r1["matched"]),
-                    len(r1["missing"])
-                ],
-                resume2: [
-                    f"{r2['score']:.2f}%",
-                    f"{r2['semantic_score']:.2f}%",
-                    f"{r2['skill_score']:.2f}%",
-                    f"{r2['experience']} Years",
-                    r2["projects"],
-                    f"{r2['education_score']}%",
-                    f"{r2['certification_score']}%",
-                    len(r2["matched"]),
-                    len(r2["missing"])
-                ]
-            })
-
-            st.dataframe(
-                comparison,
-                use_container_width=True
-            )
-
-            st.subheader("🏅 Winner")
-
-            if r1["score"] > r2["score"]:
-                st.success(
-                    f"🏆 {resume1} is the stronger candidate."
+            with col1:
+                resume1 = st.selectbox(
+                    "Resume 1",
+                    resume_names,
+                    key="compare_resume1"
                 )
-            elif r2["score"] > r1["score"]:
-                st.success(
-                    f"🏆 {resume2} is the stronger candidate."
+
+            with col2:
+                resume2 = st.selectbox(
+                    "Resume 2",
+                    resume_names,
+                    index=1 if len(resume_names) > 1 else 0,
+                    key="compare_resume2"
                 )
-            else:
-                st.info(
-                    "Both resumes have the same overall score."
+
+            if st.button("Compare Selected Resumes", key="compare_button"):
+                r1 = next(
+                    r for r in current_results
+                    if r["name"] == resume1
                 )
+
+                r2 = next(
+                    r for r in current_results
+                    if r["name"] == resume2
+                )
+
+                comparison = pd.DataFrame({
+                    "Metric": [
+                        "Overall Score",
+                        "Semantic Score",
+                        "Skill Score",
+                        "Experience",
+                        "Projects",
+                        "Education Score",
+                        "Certification Score",
+                        "Matched Skills",
+                        "Missing Skills"
+                    ],
+                    resume1: [
+                        f"{r1['score']:.2f}%",
+                        f"{r1['semantic_score']:.2f}%",
+                        f"{r1['skill_score']:.2f}%",
+                        f"{r1['experience']} Years",
+                        r1["projects"],
+                        f"{r1['education_score']}%",
+                        f"{r1['certification_score']}%",
+                        len(r1["matched"]),
+                        len(r1["missing"])
+                    ],
+                    resume2: [
+                        f"{r2['score']:.2f}%",
+                        f"{r2['semantic_score']:.2f}%",
+                        f"{r2['skill_score']:.2f}%",
+                        f"{r2['experience']} Years",
+                        r2["projects"],
+                        f"{r2['education_score']}%",
+                        f"{r2['certification_score']}%",
+                        len(r2["matched"]),
+                        len(r2["missing"])
+                    ]
+                })
+
+                st.dataframe(
+                    comparison,
+                    use_container_width=True
+                )
+
+                st.subheader("🏅 Winner")
+
+                if r1["score"] > r2["score"]:
+                    st.success(
+                        f"🏆 {resume1} is the stronger candidate."
+                    )
+                elif r2["score"] > r1["score"]:
+                    st.success(
+                        f"🏆 {resume2} is the stronger candidate."
+                    )
+                else:
+                    st.info(
+                        "Both resumes have the same overall score."
+                    )
+        else:
+            st.info("Need at least 2 resumes to compare.")
 
         st.subheader("🏆 Detailed Resume Analysis")
 
@@ -371,7 +383,7 @@ if results:
         # DETAILED ANALYSIS
         # ==================================
 
-        for rank, result in enumerate(results, start=1):
+        for rank, result in enumerate(current_results, start=1):
             st.markdown(f"## #{rank} - {result['name']}")
             st.metric("Match Score", f"{result['score']:.2f}%")
 
@@ -509,36 +521,51 @@ if results:
     else:
         st.warning("No resumes match the current filter criteria. Please adjust your filters.")
 else:
-    if analyze:
+    if analyze or st.session_state.get("analysis_performed", False):
         st.error("No results to display. Please check your inputs and try again.")
     else:
         st.info("👈 Click 'Analyze Resumes' to start screening")
+
+# ==================================
+# CANDIDATE DATABASE SEARCH
+# ==================================
+
 st.subheader("🔍 Search Candidate Database")
 
 search_candidate = st.text_input(
-    "Candidate Name"
+    "Candidate Name",
+    key="search_candidate"
 )
 
 minimum_score = st.slider(
     "Minimum Score",
     0,
     100,
-    0
+    0,
+    key="search_min_score"
 )
 
 minimum_experience = st.slider(
-    "Minimum Experience",
+    "Minimum Experience (Years)",
     0,
     20,
-    0
+    0,
+    key="search_min_experience"
 )
+
+# ==================================
+# DISPLAY ANALYSIS HISTORY
+# ==================================
+
 st.subheader("📚 Analysis History")
 
+# Load history with filters (if search_candidate is empty, it will return all)
 history = load_history(
-    search_candidate,
+    search_candidate if search_candidate.strip() else None,
     minimum_score,
     minimum_experience
 )
+
 st.success(
     f"{len(history)} candidate(s) found."
 )
@@ -565,5 +592,15 @@ if history:
         history_df,
         use_container_width=True
     )
+    
+    # Add download button for history
+    csv_history = history_df.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="📥 Download History as CSV",
+        data=csv_history,
+        file_name="resume_history.csv",
+        mime="text/csv",
+        key="download_history"
+    )
 else:
-    st.info("No history available.")
+    st.info("No history available. Please analyze some resumes first.")
