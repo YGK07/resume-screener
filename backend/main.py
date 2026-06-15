@@ -8,6 +8,12 @@ from skill_matcher import load_skills, compare_skills
 from explainer import generate_explanation
 from interview_generator import generate_interview_questions
 from name_extractor import extract_candidate_name
+from profile_parser import (
+    extract_email,
+    extract_phone,
+    extract_linkedin,
+    extract_github
+)
 
 def extract_relevant_sections(text):
     keywords = [
@@ -99,6 +105,13 @@ def certification_score(text):
 
 def screen_resume(resume_path, jd_text):
     resume_text = extract_text(resume_path)
+    email = extract_email(resume_text)
+
+    phone = extract_phone(resume_text)
+
+    linkedin = extract_linkedin(resume_text)
+
+    github = extract_github(resume_text)
     candidate_name = extract_candidate_name(
     resume_text
     )
@@ -179,7 +192,12 @@ def screen_resume(resume_path, jd_text):
         "resume_text": resume_text,
         "explanation": explanation,
         "questions": questions,
+
         "improvements": improvements
+	"email": email,
+	"phone": phone,
+	"linkedin": linkedin,
+	"github": github
     }
 
 
