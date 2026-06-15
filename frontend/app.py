@@ -104,7 +104,7 @@ if analyze:
             # Store all information from the result with error handling for questions
             results.append({
                 "name": uploaded_file.name,
-                "candidate_name": result["candidate_name"],
+                "candidate_name": result.get("candidate_name", uploaded_file.name.replace(".pdf", "")),
                 "score": result.get("score", 0),
                 "semantic_score": result.get("semantic_score", 0),
                 "skill_score": result.get("skill_score", 0),
@@ -117,7 +117,7 @@ if analyze:
                 "resume_text": result.get("resume_text", ""),
                 "explanation": result.get("explanation", "No explanation available."),
                 "questions": result.get("questions", "## Interview Questions\n\nNo interview questions could be generated for this resume."),
-                "improvements": result["improvements"]
+                "improvements": result.get("improvements", "No improvement suggestions available.")
             })
             save_result(results[-1])
             os.unlink(temp_path)
@@ -239,7 +239,7 @@ if results:
         # ==================================
 
         chart_df = pd.DataFrame({
-            "Resume": [r["name"] for r in current_results],
+            "Resume": [r["candidate_name"] for r in current_results],
             "Score": [r["score"] for r in current_results]
         })
 
@@ -261,7 +261,8 @@ if results:
         for rank, result in enumerate(current_results, start=1):
             table_data.append({
                 "Rank": rank,
-                "Resume": result["name"],
+                "Candidate": result["candidate_name"],
+                "Resume File": result["name"],
                 "Score (%)": round(result["score"], 2),
                 "Matched Skills": len(result["matched"]),
                 "Missing Skills": len(result["missing"])
@@ -287,38 +288,38 @@ if results:
 
         st.subheader("⚔️ Compare Two Resumes")
 
-        resume_names = [
-            r["name"]
+        candidate_names = [
+            r["candidate_name"]
             for r in current_results
         ]
 
-        if len(resume_names) >= 2:
+        if len(candidate_names) >= 2:
             col1, col2 = st.columns(2)
 
             with col1:
-                resume1 = st.selectbox(
-                    "Resume 1",
-                    resume_names,
-                    key="compare_resume1"
+                candidate1 = st.selectbox(
+                    "Candidate 1",
+                    candidate_names,
+                    key="compare_candidate1"
                 )
 
             with col2:
-                resume2 = st.selectbox(
-                    "Resume 2",
-                    resume_names,
-                    index=1 if len(resume_names) > 1 else 0,
-                    key="compare_resume2"
+                candidate2 = st.selectbox(
+                    "Candidate 2",
+                    candidate_names,
+                    index=1 if len(candidate_names) > 1 else 0,
+                    key="compare_candidate2"
                 )
 
-            if st.button("Compare Selected Resumes", key="compare_button"):
+            if st.button("Compare Selected Candidates", key="compare_button"):
                 r1 = next(
                     r for r in current_results
-                    if r["name"] == resume1
+                    if r["candidate_name"] == candidate1
                 )
 
                 r2 = next(
                     r for r in current_results
-                    if r["name"] == resume2
+                    if r["candidate_name"] == candidate2
                 )
 
                 comparison = pd.DataFrame({
@@ -333,7 +334,7 @@ if results:
                         "Matched Skills",
                         "Missing Skills"
                     ],
-                    resume1: [
+                    candidate1: [
                         f"{r1['score']:.2f}%",
                         f"{r1['semantic_score']:.2f}%",
                         f"{r1['skill_score']:.2f}%",
@@ -344,7 +345,7 @@ if results:
                         len(r1["matched"]),
                         len(r1["missing"])
                     ],
-                    resume2: [
+                    candidate2: [
                         f"{r2['score']:.2f}%",
                         f"{r2['semantic_score']:.2f}%",
                         f"{r2['skill_score']:.2f}%",
@@ -366,27 +367,28 @@ if results:
 
                 if r1["score"] > r2["score"]:
                     st.success(
-                        f"🏆 {resume1} is the stronger candidate."
+                        f"🏆 {candidate1} is the stronger candidate."
                     )
                 elif r2["score"] > r1["score"]:
                     st.success(
-                        f"🏆 {resume2} is the stronger candidate."
+                        f"🏆 {candidate2} is the stronger candidate."
                     )
                 else:
                     st.info(
-                        "Both resumes have the same overall score."
+                        "Both candidates have the same overall score."
                     )
         else:
-            st.info("Need at least 2 resumes to compare.")
+            st.info("Need at least 2 candidates to compare.")
 
-        st.subheader("🏆 Detailed Resume Analysis")
+        st.subheader("🏆 Detailed Candidate Analysis")
 
         # ==================================
         # DETAILED ANALYSIS
         # ==================================
 
         for rank, result in enumerate(current_results, start=1):
-            st.markdown(f"## #{rank} - {result['candidate_name']}")
+            display_name = result.get("candidate_name", result["name"].replace(".pdf", ""))
+            st.markdown(f"## #{rank} - {display_name}")
             st.caption(f"📄 File: {result['name']}")
             st.metric("Match Score", f"{result['score']:.2f}%")
 
@@ -481,7 +483,7 @@ if results:
                 names="Category",
                 values="Count",
                 hole=0.45,
-                title=f"{result['name']} Skill Match"
+                title=f"{display_name} - Skill Match"
             )
 
             st.plotly_chart(
