@@ -119,10 +119,10 @@ if analyze:
                 "explanation": result.get("explanation", "No explanation available."),
                 "questions": result.get("questions", "## Interview Questions\n\nNo interview questions could be generated for this resume."),
                 "improvements": result.get("improvements", "No improvement suggestions available."),
-		"email": result.get("email", "Not Found"),
-		"phone": result.get("phone", "Not Found"),
-		"linkedin": result.get("linkedin", "Not Found"),
-		"github": result.get("github", "Not Found")
+                "email": result.get("email", "Not Found"),
+                "phone": result.get("phone", "Not Found"),
+                "linkedin": result.get("linkedin", "Not Found"),
+                "github": result.get("github", "Not Found")
             })
             save_result(results[-1])
             os.unlink(temp_path)
@@ -270,7 +270,9 @@ if results:
                 "Resume File": result["name"],
                 "Score (%)": round(result["score"], 2),
                 "Matched Skills": len(result["matched"]),
-                "Missing Skills": len(result["missing"])
+                "Missing Skills": len(result["missing"]),
+                "Email": result.get("email", "Not Found"),
+                "Phone": result.get("phone", "Not Found")
             })
 
         ranking_df = pd.DataFrame(table_data)
@@ -337,7 +339,11 @@ if results:
                         "Education Score",
                         "Certification Score",
                         "Matched Skills",
-                        "Missing Skills"
+                        "Missing Skills",
+                        "Email",
+                        "Phone",
+                        "LinkedIn",
+                        "GitHub"
                     ],
                     candidate1: [
                         f"{r1['score']:.2f}%",
@@ -348,7 +354,11 @@ if results:
                         f"{r1['education_score']}%",
                         f"{r1['certification_score']}%",
                         len(r1["matched"]),
-                        len(r1["missing"])
+                        len(r1["missing"]),
+                        r1.get("email", "Not Found"),
+                        r1.get("phone", "Not Found"),
+                        r1.get("linkedin", "Not Found"),
+                        r1.get("github", "Not Found")
                     ],
                     candidate2: [
                         f"{r2['score']:.2f}%",
@@ -359,7 +369,11 @@ if results:
                         f"{r2['education_score']}%",
                         f"{r2['certification_score']}%",
                         len(r2["matched"]),
-                        len(r2["missing"])
+                        len(r2["missing"]),
+                        r2.get("email", "Not Found"),
+                        r2.get("phone", "Not Found"),
+                        r2.get("linkedin", "Not Found"),
+                        r2.get("github", "Not Found")
                     ]
                 })
 
@@ -395,7 +409,45 @@ if results:
             display_name = result.get("candidate_name", result["name"].replace(".pdf", ""))
             st.markdown(f"## #{rank} - {display_name}")
             st.caption(f"📄 File: {result['name']}")
-            st.metric("Match Score", f"{result['score']:.2f}%")
+            
+            # ==================================
+            # CANDIDATE PROFILE
+            # ==================================
+            
+            st.subheader("👤 Candidate Profile")
+            
+            col1, col2 = st.columns([1, 2])
+            
+            with col1:
+                st.metric(
+                    "ATS Score",
+                    f"{result['score']:.2f}%"
+                )
+                # Add progress bar under the metric
+                st.progress(result["score"] / 100)
+            
+            with col2:
+                # Display contact information
+                st.write(f"**📧 Email:** {result.get('email', 'Not Found')}")
+                st.write(f"**📞 Phone:** {result.get('phone', 'Not Found')}")
+                st.write(f"**💼 Experience:** {result.get('experience', 0)} years")
+                st.write(f"**📂 Projects:** {result.get('projects', 0)}")
+                
+                # Display LinkedIn if available
+                linkedin = result.get('linkedin', 'Not Found')
+                if linkedin != "Not Found" and linkedin:
+                    st.markdown(f"**🔗 LinkedIn:** {linkedin}")
+                else:
+                    st.write("**🔗 LinkedIn:** Not Found")
+                
+                # Display GitHub if available
+                github = result.get('github', 'Not Found')
+                if github != "Not Found" and github:
+                    st.markdown(f"**💻 GitHub:** {github}")
+                else:
+                    st.write("**💻 GitHub:** Not Found")
+            
+            st.divider()
 
             # ==================================
             # ATS BREAKDOWN
@@ -553,8 +605,6 @@ if results:
                     )
                 
                 # Clean up the PDF file after download button is created
-                # Note: The file will be cleaned up on next rerun or you can use os.remove
-                # But since Streamlit reruns frequently, we'll schedule cleanup
                 if os.path.exists(pdf_name):
                     os.remove(pdf_name)
                     
