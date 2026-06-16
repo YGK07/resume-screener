@@ -193,7 +193,7 @@ def screen_resume(resume_path, jd_text):
         "explanation": explanation,
         "questions": questions,
 
-        "improvements": improvements
+        "improvements": improvements,
 	"email": email,
 	"phone": phone,
 	"linkedin": linkedin,
