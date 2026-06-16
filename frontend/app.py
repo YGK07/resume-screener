@@ -145,6 +145,19 @@ else:
     results = []
 
 # ==================================
+# HELPER FUNCTION FOR SAFE FLOAT CONVERSION
+# ==================================
+
+def safe_float(value, default=0.0):
+    """Safely convert a value to float."""
+    if value is None:
+        return default
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
+# ==================================
 # DISPLAY RESULTS IF AVAILABLE
 # ==================================
 
@@ -419,19 +432,22 @@ if results:
             col1, col2 = st.columns([1, 2])
             
             with col1:
+                # Safely get score as float
+                score = safe_float(result.get("score", 0))
+                
                 st.metric(
                     "ATS Score",
-                    f"{result['score']:.2f}%"
+                    f"{score:.2f}%"
                 )
-                # FIXED: Ensure progress value is between 0.0 and 1.0
-                progress_value = max(0.0, min(1.0, result["score"] / 100))
+                # Ensure progress value is between 0.0 and 1.0
+                progress_value = max(0.0, min(1.0, score / 100))
                 st.progress(progress_value)
             
             with col2:
                 # Display contact information
                 st.write(f"**📧 Email:** {result.get('email', 'Not Found')}")
                 st.write(f"**📞 Phone:** {result.get('phone', 'Not Found')}")
-                st.write(f"**💼 Experience:** {result.get('experience', 0)} years")
+                st.write(f"**💼 Experience:** {safe_float(result.get('experience', 0)):.1f} years")
                 st.write(f"**📂 Projects:** {result.get('projects', 0)}")
                 
                 # Display LinkedIn if available
@@ -460,37 +476,48 @@ if results:
 
             with col1:
                 # Semantic Match
-                semantic_value = max(0, min(100, int(result["semantic_score"])))
+                semantic_score = safe_float(result.get("semantic_score", 0))
+                semantic_value = max(0, min(100, int(semantic_score)))
                 st.progress(semantic_value / 100)
-                st.write(f"Semantic Match: {result['semantic_score']:.2f}%")
+                st.write(f"Semantic Match: {semantic_score:.2f}%")
 
                 # Skill Match
-                skill_value = max(0, min(100, int(result["skill_score"])))
+                skill_score = safe_float(result.get("skill_score", 0))
+                skill_value = max(0, min(100, int(skill_score)))
                 st.progress(skill_value / 100)
-                st.write(f"Skill Match: {result['skill_score']:.2f}%")
+                st.write(f"Skill Match: {skill_score:.2f}%")
 
                 # Experience
-                exp_score = min(result["experience"] * 20, 100)
+                exp_years = safe_float(result.get("experience", 0))
+                exp_score = min(exp_years * 20, 100)
                 exp_value = max(0, min(100, int(exp_score)))
                 st.progress(exp_value / 100)
-                st.write(f"Experience: {result['experience']} Years")
+                st.write(f"Experience: {exp_years:.1f} Years")
 
             with col2:
                 # Projects
-                project_score = min(result["projects"] * 10, 100)
+                projects = result.get("projects", 0)
+                if isinstance(projects, str):
+                    try:
+                        projects = int(projects)
+                    except (ValueError, TypeError):
+                        projects = 0
+                project_score = min(projects * 10, 100)
                 project_value = max(0, min(100, int(project_score)))
                 st.progress(project_value / 100)
-                st.write(f"Projects: {result['projects']}")
+                st.write(f"Projects: {projects}")
 
                 # Education
-                edu_value = max(0, min(100, int(result["education_score"])))
+                edu_score = safe_float(result.get("education_score", 0))
+                edu_value = max(0, min(100, int(edu_score)))
                 st.progress(edu_value / 100)
-                st.write(f"Education Score: {result['education_score']}%")
+                st.write(f"Education Score: {edu_score:.2f}%")
 
                 # Certification
-                cert_value = max(0, min(100, int(result["certification_score"])))
+                cert_score = safe_float(result.get("certification_score", 0))
+                cert_value = max(0, min(100, int(cert_score)))
                 st.progress(cert_value / 100)
-                st.write(f"Certification Score: {result['certification_score']}%")
+                st.write(f"Certification Score: {cert_score:.2f}%")
 
             if result["score"] >= 80:
                 st.success("⭐ Strong Match")
