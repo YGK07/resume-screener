@@ -5,6 +5,7 @@ import sys
 import pandas as pd
 import plotly.express as px
 from hiring_decision import generate_hiring_decision
+
 # ==================================
 # ADD BACKEND FOLDER TO PYTHON PATH
 # ==================================
@@ -25,7 +26,7 @@ sys.path.append(backend_path)
 
 from main import screen_resume
 from report_generator import generate_pdf
-from comparison import compare_candidates  # ADD THIS IMPORT
+from comparison import compare_candidates
 
 from database import (
     initialize_database,
@@ -579,20 +580,24 @@ if results:
 
             st.subheader("🤖 AI Evaluation")
             st.write(result["explanation"])
+            
             # ==================================
-	    # AI HIRING DECISION
- 	    # ==================================
-
-	    st.subheader("🎯 AI Hiring Decision")
-
-	    with st.spinner("Evaluating candidate..."):
-
-   	        hiring_decision = generate_hiring_decision(
-                    result,
-                    job_description
-                )
-
-            st.markdown(hiring_decision)
+            # AI HIRING DECISION
+            # ==================================
+            
+            st.subheader("🎯 AI Hiring Decision")
+            
+            with st.spinner("Evaluating candidate..."):
+                try:
+                    hiring_decision = generate_hiring_decision(
+                        result,
+                        job_description
+                    )
+                    st.markdown(hiring_decision)
+                except Exception as e:
+                    st.error(f"Error generating hiring decision: {str(e)}")
+                    st.info("Fallback: Please review the candidate manually.")
+            
             st.subheader("💡 AI Resume Improvement Suggestions")
             st.info(result["improvements"])
 
