@@ -640,6 +640,178 @@ if results:
                 st.error(f"Could not generate PDF report: {str(e)}")
             
             st.divider()
+        
+        # ============================================================
+        # AI CANDIDATE COMPARISON (ADDED AFTER THE DETAILED ANALYSIS LOOP)
+        # ============================================================
+        
+        if len(current_results) >= 2:
+            st.header("⚖️ AI Candidate Comparison")
+            
+            # Get the top 2 candidates for comparison
+            candidate1 = current_results[0]
+            candidate2 = current_results[1]
+            
+            # Create comparison table
+            comparison_df = pd.DataFrame({
+                "Metric": [
+                    "ATS Score",
+                    "Semantic Score",
+                    "Skill Score",
+                    "Experience",
+                    "Projects",
+                    "Education Score",
+                    "Certification Score",
+                    "Matched Skills",
+                    "Missing Skills",
+                    "Email",
+                    "Phone",
+                    "LinkedIn",
+                    "GitHub"
+                ],
+                candidate1["candidate_name"]: [
+                    f"{safe_float(candidate1['score']):.2f}%",
+                    f"{safe_float(candidate1['semantic_score']):.2f}%",
+                    f"{safe_float(candidate1['skill_score']):.2f}%",
+                    f"{safe_float(candidate1['experience']):.1f} Years",
+                    candidate1["projects"],
+                    f"{safe_float(candidate1['education_score']):.2f}%",
+                    f"{safe_float(candidate1['certification_score']):.2f}%",
+                    len(candidate1["matched"]),
+                    len(candidate1["missing"]),
+                    candidate1.get("email", "Not Found"),
+                    candidate1.get("phone", "Not Found"),
+                    candidate1.get("linkedin", "Not Found"),
+                    candidate1.get("github", "Not Found")
+                ],
+                candidate2["candidate_name"]: [
+                    f"{safe_float(candidate2['score']):.2f}%",
+                    f"{safe_float(candidate2['semantic_score']):.2f}%",
+                    f"{safe_float(candidate2['skill_score']):.2f}%",
+                    f"{safe_float(candidate2['experience']):.1f} Years",
+                    candidate2["projects"],
+                    f"{safe_float(candidate2['education_score']):.2f}%",
+                    f"{safe_float(candidate2['certification_score']):.2f}%",
+                    len(candidate2["matched"]),
+                    len(candidate2["missing"]),
+                    candidate2.get("email", "Not Found"),
+                    candidate2.get("phone", "Not Found"),
+                    candidate2.get("linkedin", "Not Found"),
+                    candidate2.get("github", "Not Found")
+                ]
+            })
+            
+            st.dataframe(
+                comparison_df,
+                use_container_width=True
+            )
+            
+            # ==================================
+            # AI COMPARISON INSIGHTS
+            # ==================================
+            
+            st.subheader("🤖 AI Comparison Insights")
+            
+            # Generate insights based on comparison
+            insights = []
+            
+            # Score comparison
+            score1 = safe_float(candidate1['score'])
+            score2 = safe_float(candidate2['score'])
+            score_diff = abs(score1 - score2)
+            
+            if score_diff > 10:
+                if score1 > score2:
+                    insights.append(f"📊 **{candidate1['candidate_name']}** has a significantly higher ATS score ({score1:.1f}% vs {score2:.1f}%)")
+                else:
+                    insights.append(f"📊 **{candidate2['candidate_name']}** has a significantly higher ATS score ({score2:.1f}% vs {score1:.1f}%)")
+            
+            # Experience comparison
+            exp1 = safe_float(candidate1['experience'])
+            exp2 = safe_float(candidate2['experience'])
+            if exp1 != exp2:
+                if exp1 > exp2:
+                    insights.append(f"💼 **{candidate1['candidate_name']}** has more experience ({exp1:.1f} years vs {exp2:.1f} years)")
+                else:
+                    insights.append(f"💼 **{candidate2['candidate_name']}** has more experience ({exp2:.1f} years vs {exp1:.1f} years)")
+            
+            # Projects comparison
+            proj1 = candidate1.get('projects', 0)
+            proj2 = candidate2.get('projects', 0)
+            if isinstance(proj1, str):
+                try:
+                    proj1 = int(proj1)
+                except:
+                    proj1 = 0
+            if isinstance(proj2, str):
+                try:
+                    proj2 = int(proj2)
+                except:
+                    proj2 = 0
+            
+            if proj1 != proj2:
+                if proj1 > proj2:
+                    insights.append(f"📂 **{candidate1['candidate_name']}** has more projects ({proj1} vs {proj2})")
+                else:
+                    insights.append(f"📂 **{candidate2['candidate_name']}** has more projects ({proj2} vs {proj1})")
+            
+            # Skills comparison
+            matched1 = len(candidate1["matched"])
+            matched2 = len(candidate2["matched"])
+            if matched1 != matched2:
+                if matched1 > matched2:
+                    insights.append(f"✅ **{candidate1['candidate_name']}** has more matched skills ({matched1} vs {matched2})")
+                else:
+                    insights.append(f"✅ **{candidate2['candidate_name']}** has more matched skills ({matched2} vs {matched1})")
+            
+            # Missing skills comparison
+            missing1 = len(candidate1["missing"])
+            missing2 = len(candidate2["missing"])
+            if missing1 != missing2:
+                if missing1 < missing2:
+                    insights.append(f"❌ **{candidate1['candidate_name']}** has fewer missing skills ({missing1} vs {missing2})")
+                else:
+                    insights.append(f"❌ **{candidate2['candidate_name']}** has fewer missing skills ({missing2} vs {missing1})")
+            
+            # Display insights
+            if insights:
+                for insight in insights:
+                    st.write(f"• {insight}")
+            else:
+                st.info("Both candidates are closely matched in all metrics.")
+            
+            # ==================================
+            # RECOMMENDATION
+            # ==================================
+            
+            st.subheader("🎯 Recommendation")
+            
+            if score1 > score2:
+                st.success(f"🏆 **Recommended Candidate:** {candidate1['candidate_name']}")
+                st.write(f"**Reason:** {candidate1['candidate_name']} has a higher overall ATS score ({score1:.1f}%) compared to {candidate2['candidate_name']} ({score2:.1f}%).")
+            elif score2 > score1:
+                st.success(f"🏆 **Recommended Candidate:** {candidate2['candidate_name']}")
+                st.write(f"**Reason:** {candidate2['candidate_name']} has a higher overall ATS score ({score2:.1f}%) compared to {candidate1['candidate_name']} ({score1:.1f}%).")
+            else:
+                st.info("Both candidates have the same ATS score. Consider interviewing both.")
+            
+            # Display shared skills
+            shared_skills = set(candidate1["matched"]) & set(candidate2["matched"])
+            if shared_skills:
+                st.write(f"**Common Strengths:** {', '.join(sorted(shared_skills))}")
+            
+            # Display skills only candidate1 has
+            unique_to_c1 = set(candidate1["matched"]) - set(candidate2["matched"])
+            if unique_to_c1:
+                st.write(f"**Unique to {candidate1['candidate_name']}:** {', '.join(sorted(unique_to_c1))}")
+            
+            # Display skills only candidate2 has
+            unique_to_c2 = set(candidate2["matched"]) - set(candidate1["matched"])
+            if unique_to_c2:
+                st.write(f"**Unique to {candidate2['candidate_name']}:** {', '.join(sorted(unique_to_c2))}")
+            
+            st.divider()
+        
     else:
         st.warning("No resumes match the current filter criteria. Please adjust your filters.")
 else:
