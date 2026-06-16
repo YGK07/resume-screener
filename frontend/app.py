@@ -423,8 +423,9 @@ if results:
                     "ATS Score",
                     f"{result['score']:.2f}%"
                 )
-                # Add progress bar under the metric
-                st.progress(result["score"] / 100)
+                # FIXED: Ensure progress value is between 0.0 and 1.0
+                progress_value = max(0.0, min(1.0, result["score"] / 100))
+                st.progress(progress_value)
             
             with col2:
                 # Display contact information
@@ -460,35 +461,35 @@ if results:
             with col1:
                 # Semantic Match
                 semantic_value = max(0, min(100, int(result["semantic_score"])))
-                st.progress(semantic_value)
+                st.progress(semantic_value / 100)
                 st.write(f"Semantic Match: {result['semantic_score']:.2f}%")
 
                 # Skill Match
                 skill_value = max(0, min(100, int(result["skill_score"])))
-                st.progress(skill_value)
+                st.progress(skill_value / 100)
                 st.write(f"Skill Match: {result['skill_score']:.2f}%")
 
                 # Experience
                 exp_score = min(result["experience"] * 20, 100)
                 exp_value = max(0, min(100, int(exp_score)))
-                st.progress(exp_value)
+                st.progress(exp_value / 100)
                 st.write(f"Experience: {result['experience']} Years")
 
             with col2:
                 # Projects
                 project_score = min(result["projects"] * 10, 100)
                 project_value = max(0, min(100, int(project_score)))
-                st.progress(project_value)
+                st.progress(project_value / 100)
                 st.write(f"Projects: {result['projects']}")
 
                 # Education
                 edu_value = max(0, min(100, int(result["education_score"])))
-                st.progress(edu_value)
+                st.progress(edu_value / 100)
                 st.write(f"Education Score: {result['education_score']}%")
 
                 # Certification
                 cert_value = max(0, min(100, int(result["certification_score"])))
-                st.progress(cert_value)
+                st.progress(cert_value / 100)
                 st.write(f"Certification Score: {result['certification_score']}%")
 
             if result["score"] >= 80:
