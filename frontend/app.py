@@ -4,7 +4,7 @@ import os
 import sys
 import pandas as pd
 import plotly.express as px
-
+from hiring_decision import generate_hiring_decision
 # ==================================
 # ADD BACKEND FOLDER TO PYTHON PATH
 # ==================================
@@ -579,7 +579,20 @@ if results:
 
             st.subheader("🤖 AI Evaluation")
             st.write(result["explanation"])
-            
+            # ==================================
+	    # AI HIRING DECISION
+ 	    # ==================================
+
+	    st.subheader("🎯 AI Hiring Decision")
+
+	    with st.spinner("Evaluating candidate..."):
+
+   	        hiring_decision = generate_hiring_decision(
+                    result,
+                    job_description
+                )
+
+            st.markdown(hiring_decision)
             st.subheader("💡 AI Resume Improvement Suggestions")
             st.info(result["improvements"])
 
