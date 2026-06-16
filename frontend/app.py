@@ -25,6 +25,7 @@ sys.path.append(backend_path)
 
 from main import screen_resume
 from report_generator import generate_pdf
+from comparison import compare_candidates  # ADD THIS IMPORT
 
 from database import (
     initialize_database,
@@ -707,10 +708,42 @@ if results:
             )
             
             # ==================================
+            # AI COMPARISON SUMMARY
+            # ==================================
+            
+            st.subheader("🤖 AI Recruiter Comparison")
+            
+            with st.spinner("Comparing candidates..."):
+                try:
+                    comparison = compare_candidates(
+                        candidate1,
+                        candidate2,
+                        job_description
+                    )
+                    st.write(comparison)
+                except Exception as e:
+                    st.error(f"Error during AI comparison: {str(e)}")
+                    st.info("Showing fallback comparison instead.")
+                    
+                    # Fallback comparison
+                    st.write(f"**{candidate1['candidate_name']}** vs **{candidate2['candidate_name']}**")
+                    st.write(f"- ATS Score: {candidate1['score']:.1f}% vs {candidate2['score']:.1f}%")
+                    st.write(f"- Experience: {candidate1['experience']} years vs {candidate2['experience']} years")
+                    st.write(f"- Matched Skills: {len(candidate1['matched'])} vs {len(candidate2['matched'])}")
+                    st.write(f"- Missing Skills: {len(candidate1['missing'])} vs {len(candidate2['missing'])}")
+                    
+                    if candidate1['score'] > candidate2['score']:
+                        st.success(f"**Recommended: {candidate1['candidate_name']}**")
+                    elif candidate2['score'] > candidate1['score']:
+                        st.success(f"**Recommended: {candidate2['candidate_name']}**")
+                    else:
+                        st.info("Both candidates are equally matched.")
+            
+            # ==================================
             # AI COMPARISON INSIGHTS
             # ==================================
             
-            st.subheader("🤖 AI Comparison Insights")
+            st.subheader("📊 Comparison Insights")
             
             # Generate insights based on comparison
             insights = []
