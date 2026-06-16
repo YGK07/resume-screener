@@ -4,7 +4,7 @@ import os
 import sys
 import pandas as pd
 import plotly.express as px
-from hiring_decision import generate_hiring_decision
+
 
 # ==================================
 # ADD BACKEND FOLDER TO PYTHON PATH
@@ -27,7 +27,7 @@ sys.path.append(backend_path)
 from main import screen_resume
 from report_generator import generate_pdf
 from comparison import compare_candidates
-
+from hiring_decision import generate_hiring_decision
 from database import (
     initialize_database,
     save_result,
