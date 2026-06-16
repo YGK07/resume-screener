@@ -119,6 +119,10 @@ def screen_resume(resume_path, jd_text):
     linkedin = extract_linkedin(resume_text)
 
     github = extract_github(resume_text)
+    print("EMAIL:", email)
+    print("PHONE:", phone)
+    print("LINKEDIN:", linkedin)
+    print("GITHUB:", github)
     candidate_name = extract_candidate_name(
     resume_text
     )

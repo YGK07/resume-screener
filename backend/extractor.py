@@ -1,5 +1,4 @@
 import pdfplumber
-import re
 
 
 def extract_text(pdf_path):
@@ -15,24 +14,10 @@ def extract_text(pdf_path):
             if page_text:
                 text += page_text + "\n"
 
-    # DEBUG: show raw extracted text
-    print("\n===== RAW TEXT =====")
-    print(text[:1000])
-    print("====================\n")
-
-    # Replace email addresses
-    text = re.sub(
-        r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
-        "[EMAIL]",
-        text
-    )
-
-    # Replace Indian phone numbers
-    text = re.sub(
-        r"\b(?:\+91[\s\-]?)?[6-9]\d{9}\b",
-        "[PHONE]",
-        text
-    )
+    # DEBUG
+    print("\n========== EXTRACTED RESUME ==========\n")
+    print(text[:2000])
+    print("\n======================================\n")
 
     return text
 
@@ -43,6 +28,4 @@ if __name__ == "__main__":
 
     extracted_text = extract_text(pdf_path)
 
-    print("===== CLEANED TEXT =====")
     print(extracted_text)
-    print("========================")
