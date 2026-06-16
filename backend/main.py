@@ -105,6 +105,13 @@ def certification_score(text):
 
 def screen_resume(resume_path, jd_text):
     resume_text = extract_text(resume_path)
+    print("=" * 80)
+    print(resume_text[:2000])
+    print("=" * 80)
+    print("EMAIL:", email)
+    print("PHONE:", phone)
+    print("LINKEDIN:", linkedin)
+    print("GITHUB:", github)
     email = extract_email(resume_text)
 
     phone = extract_phone(resume_text)
